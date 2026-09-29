@@ -2,6 +2,7 @@
 //  • {order_id}          called by the database when a new order is complete;
 //                        sends once per order (orders.pushed_at guards duplicates).
 //  • {action:'test', outlet_id}  signed-in user: test notification to their own devices.
+//  • {request_id}      called by the database when a guest calls a waiter / asks for the bill.
 //  • {action:'remind'}  called every 30 s by pg_cron: repeats the push for orders still "new"
 //                       (interval and maximum per outlet in outlet_order_settings).
 // Recipients: devices of users with the Orders right on the order's outlet.
@@ -123,6 +124,23 @@ Deno.serve(async (req) => {
         sent += r.sent;
       }
       return json({ reminders: (due || []).length, sent });
+    }
+
+    // -------------------------------------------------------- service requests
+    if (b.request_id) {
+      const { data: r } = await admin.from('service_requests').select('*').eq('id', String(b.request_id)).maybeSingle();
+      if (!r || r.status !== 'open' || Date.now() - new Date(r.created_at).getTime() > 5 * 60 * 1000) return json({ skipped: true });
+      const where = r.location_type === 'room' ? `Room ${r.location}` : `Table ${r.location}`;
+      const subs = await teamDevices(r.outlet_id);
+      if (!subs.length) return json({ sent: 0, note: 'No devices registered' });
+      const res = await sendTo(subs, {
+        title: r.kind === 'bill' ? `🧾 ${where} asks for the bill` : `🙋 ${where} is calling a waiter`,
+        body: r.note ? `📝 ${r.note}` : 'Tap to open the Orders tab.',
+        url: './#orders',
+        tag: `req-${r.id}`,
+        badge: await openCount(r.outlet_id),
+      });
+      return json(res);
     }
 
     // ------------------------------------------------------------- new order

@@ -190,3 +190,16 @@ export async function openOrderCount(outletId) {
   if (error) throw error;
   return count || 0;
 }
+
+// ---------------------------------------------------------------------------
+// Guest service requests (call waiter / request bill)
+// ---------------------------------------------------------------------------
+export const loadOpenRequests = (outletId) => sb.from('service_requests').select('*')
+  .eq('outlet_id', outletId).eq('status', 'open')
+  .gte('created_at', new Date(Date.now() - 12 * 3600 * 1000).toISOString())
+  .order('created_at', { ascending: true }).then(must);
+
+export async function markRequestDone(id) {
+  const uid = (await sb.auth.getSession()).data.session?.user?.id || null;
+  return sb.from('service_requests').update({ status: 'done', done_at: new Date().toISOString(), done_by: uid }).eq('id', id).then(must);
+}

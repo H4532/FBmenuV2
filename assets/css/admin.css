@@ -619,3 +619,13 @@ body { background: #F3F6F4; }
 .log-row { display: flex; gap: .75rem; align-items: baseline; padding: .5rem .1rem; border-bottom: 1px solid #EEF3F0; font-size: .88rem; }
 .log-time { color: var(--c-muted); white-space: nowrap; font-variant-numeric: tabular-nums; flex-shrink: 0; }
 .log-text strong { color: var(--c-primary-deep); }
+
+/* Waiter / bill requests on the Orders tab */
+.req-grid { display: grid; gap: .5rem; margin: .5rem 0 .75rem; }
+.req-card { display: flex; align-items: center; gap: .75rem; padding: .7rem .9rem; border-radius: 12px; border: 2px solid; animation: req-pulse 1.4s ease-in-out 3; }
+.req-waiter { background: #EDE9FE; border-color: #7C3AED; color: #4C1D95; }
+.req-bill { background: #FEF3C7; border-color: #D97706; color: #78350F; }
+.req-icon { font-size: 1.5rem; }
+.req-text { flex: 1; display: grid; }
+.req-text small { font-size: .78rem; opacity: .85; }
+@keyframes req-pulse { 50% { transform: scale(1.01); box-shadow: 0 0 0 5px rgb(124 58 237 / .15); } }

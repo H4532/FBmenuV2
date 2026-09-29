@@ -45,6 +45,7 @@ export function renderOrders(ctx) {
     <div class="push-box" id="push-box"></div>
     <details class="sound-box" id="sound-box"></details>
     <p class="hint">Updates every 15 seconds. New orders play your alert sound and show at the top.</p>
+    <div id="requests-list"></div>
     <div id="orders-list"><div class="loading"><span class="spinner"></span></div></div>`;
 
   $$('[data-filter]', root).forEach((b) => b.addEventListener('click', () => {
@@ -75,6 +76,18 @@ async function refresh(ctx, first) {
     if (first) errorToast(err);
     return;
   }
+  // Waiter / bill requests (shown above the orders).
+  let requests = [];
+  try { requests = await api.loadOpenRequests(ctx.outlet.id); } catch { /* keep going */ }
+  const freshReq = requests.filter((r) => !seen.has(r.id));
+  requests.forEach((r) => seen.add(r.id));
+  renderRequests(ctx, requests);
+  if (!first && freshReq.length) {
+    const r = freshReq[0];
+    toast(`${r.kind === 'bill' ? '🧾' : '🙋'} ${r.location_type === 'room' ? 'Room' : 'Table'} ${r.location}: ${r.kind === 'bill' ? 'bill requested' : 'calling a waiter'}`);
+    alerts.play();
+  }
+
   const fresh = orders.filter((o) => !seen.has(o.id));
   const hasFreshNew = !first && fresh.some((o) => o.status === 'new');
   const waiting = orders.filter((o) => o.status === 'new').length;
@@ -288,4 +301,36 @@ function renderSoundBox() {
     box.querySelector('summary strong').textContent = alerts.SOUNDS[s2.sound];
   };
   box.onclick = (e) => { if (e.target.closest('[data-snd-preview]')) alerts.play(); };
+}
+
+// ---------------------------------------------------------------------------
+// Waiter / bill requests
+// ---------------------------------------------------------------------------
+function renderRequests(ctx, requests) {
+  const host = $('#requests-list');
+  if (!host) return;
+  if (!requests.length) { host.innerHTML = ''; return; }
+  host.innerHTML = `
+    <div class="req-grid">
+      ${requests.map((r) => {
+        const where = r.location_type === 'room' ? `Room ${r.location}` : `Table ${r.location}`;
+        return `
+          <div class="req-card req-${r.kind}">
+            <span class="req-icon" aria-hidden="true">${r.kind === 'bill' ? '🧾' : '🙋'}</span>
+            <span class="req-text"><strong>${esc(where)}</strong> ${r.kind === 'bill' ? 'asks for the bill' : 'is calling a waiter'}
+              <small>${esc(ago(r.created_at))}</small>${r.note ? `<small>📝 ${esc(r.note)}</small>` : ''}</span>
+            <button type="button" class="btn btn-small btn-primary" data-req-done="${r.id}">Done</button>
+          </div>`;
+      }).join('')}
+    </div>`;
+  host.onclick = async (e) => {
+    const b = e.target.closest('[data-req-done]');
+    if (!b) return;
+    b.disabled = true;
+    try {
+      await api.markRequestDone(b.dataset.reqDone);
+      b.closest('.req-card').remove();
+      toast('Request marked done');
+    } catch (err) { errorToast(err); b.disabled = false; }
+  };
 }

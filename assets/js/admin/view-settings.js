@@ -67,6 +67,7 @@ export function renderSettings(ctx) {
       <section class="block">
         <h2 class="block-title">Guest ordering</h2>
         ${toggle('ordering_enabled', 'Take orders from table and room QR codes', Boolean(outlet.ordering?.enabled), 'Guests who scan a table or room code can build an order and send it. Orders appear in the Orders tab.')}
+        ${toggle('requests_enabled', 'Show “Call waiter” and “Request bill” buttons', outlet.ordering?.requests !== false, 'For guests who scan a table or room code (rooms get “Request assistance”). Works even when ordering is off.')}
         ${field('E-mail new orders to', '<input name="notify_emails" data-notify inputmode="email" placeholder="you@hotel.com, chef@hotel.com" autocomplete="off">', 'Separate several addresses with commas (up to 5).')}
         <div class="row-fields">
           ${field('Remind the team while an order is not accepted', `
@@ -156,7 +157,7 @@ export function renderSettings(ctx) {
       });
       savedEmails = emails;
       const patch = {
-        ordering: { ...(outlet.ordering || {}), enabled: orderingOn },
+        ordering: { ...(outlet.ordering || {}), enabled: orderingOn, requests: form.elements.requests_enabled.checked },
         name,
         tagline: readLang(form, 'tagline', langs),
         languages,

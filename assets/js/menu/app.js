@@ -14,6 +14,8 @@ import { itemSummary, openItemSheet } from './item-sheet.js';
 import { locationFromUrl } from './cart.js';
 import { setupOrdering, orderContext, quickAdd, renderCartBar, whereLabel, showMyOrders } from './order-ui.js';
 import { savedOrders, activeOrders, watchOrders, STATUS_DOT, estimateText } from './my-orders.js';
+import * as filt from './filters.js';
+import * as svc from './service.js';
 import { guestToast } from './order-ui.js';
 
 const state = {
@@ -112,6 +114,15 @@ function start({ keepPosition = false } = {}) {
   configureFormat(outlet, state.config.format);
   state.location = locationFromUrl(state.params);
   state.orderingOn = setupOrdering(state, { refetch });
+  const svcHost = $('#svc');
+  if (state.location && outlet.ordering?.requests !== false) {
+    const opts = { slug: state.config.slug, location: state.location, onToast: guestToast };
+    svc.render(svcHost, opts);
+    svc.watch(svcHost, opts);
+  } else if (svcHost) {
+    svcHost.hidden = true;
+  }
+  if (!state.scanLogged) { state.scanLogged = true; svc.logScan(state.config.slug, state.location, lang()); }
 
   const menus = state.data.menus;
   const wanted = state.params.get('m');
@@ -278,12 +289,23 @@ function renderMenu() {
 
   const hideSoldOut = outlet.unavailable_display === 'hide';
   state.menuServing = isServing(menu, nowIn(outlet.timezone));
+  const visible = (it) => it && (it.available || !hideSoldOut);
+  const allInMenu = [...new Set(menu.categories.flatMap((c) => c.items))].map((id) => items[id]).filter(visible);
   const cats = menu.categories
     .map((c) => ({
       ...c,
-      list: c.items.map((id) => items[id]).filter((it) => it && (it.available || !hideSoldOut)),
+      list: c.items.map((id) => items[id]).filter((it) => visible(it) && filt.passes(it)),
     }))
     .filter((c) => c.list.length);
+  const shown = new Set(cats.flatMap((c) => c.list.map((i) => i.id))).size;
+
+  filt.renderBar($('#filter-bar'), {
+    shown, total: allInMenu.length,
+    onOpen: () => filt.openSheet($('#filters'), {
+      countFor: (f) => allInMenu.filter((i) => filt.passes(i, f)).length,
+      onApply: () => { renderMenu(); window.scrollTo({ top: 0 }); },
+    }),
+  });
 
   // Category chips
   if (cats.length > 1) {
@@ -299,7 +321,7 @@ function renderMenu() {
 
   main.innerHTML = buffet + (cats.length
     ? cats.map(renderCategory).join('')
-    : `<div class="state"><p>${esc(t('empty_menu'))}</p></div>`);
+    : `<div class="state"><p>${esc(t(filt.active() ? 'filter_none' : 'empty_menu'))}</p></div>`);
 
   main.querySelectorAll('[data-item]').forEach((btn) => {
     btn.addEventListener('click', () => openItemSheet(state.data, btn.dataset.item, state.config, orderContext(state.menuServing)));
