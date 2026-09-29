@@ -9,12 +9,14 @@ import { renderOptions } from './view-options.js';
 import { renderSettings } from './view-settings.js';
 import { renderOrders } from './view-orders.js';
 import { renderUsers } from './view-users.js';
+import { renderReports } from './view-reports.js';
 
 const VIEWS = {
   orders:   { perm: 'orders',   label: 'Orders',   render: renderOrders,   icon: 'M6 17h12l-1.5-2V11a4.5 4.5 0 00-9 0v4zM10 20h4M12 4v2' },
   items:    { perm: 'dishes',   label: 'Dishes',   render: renderItems,    icon: 'M4 6h16M4 12h16M4 18h10' },
   menus:    { perm: 'menus',    label: 'Menus',    render: renderMenus,    icon: 'M5 4h14v16H5zM9 8h6M9 12h6M9 16h4' },
   options:  { perm: 'menus',    label: 'Choices',  render: renderOptions,  icon: 'M5 7h3m4 0h7M5 17h9m4 0h1M8 5v4M14 15v4' },
+  reports:  { perm: 'settings', label: 'Reports',  render: renderReports,  icon: 'M4 20V10M10 20V4M16 20v-7M22 20H2' },
   users:    { perm: 'users',    label: 'Users',    render: renderUsers,    icon: 'M9 11a4 4 0 100-8 4 4 0 000 8zM2 21c.8-3.5 3.6-5.5 7-5.5s6.2 2 7 5.5M17 11a3 3 0 100-6M22 21c-.5-2.6-2.2-4.2-4.5-4.8' },
   settings: { perm: 'settings', label: 'Settings', render: renderSettings, icon: 'M12 15a3 3 0 100-6 3 3 0 000 6zM4 12h2m12 0h2M12 4v2m0 12v2' },
 };

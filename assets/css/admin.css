@@ -629,3 +629,34 @@ body { background: #F3F6F4; }
 .req-text { flex: 1; display: grid; }
 .req-text small { font-size: .78rem; opacity: .85; }
 @keyframes req-pulse { 50% { transform: scale(1.01); box-shadow: 0 0 0 5px rgb(124 58 237 / .15); } }
+
+/* ---------- Reports ------------------------------------------------------- */
+.kpis { display: grid; gap: .75rem; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); margin: .5rem 0 1rem; }
+.kpi { background: #fff; border: 1px solid var(--c-line); border-radius: 12px; padding: .8rem .9rem; display: grid; gap: .15rem; }
+.kpi span { font-size: .8rem; color: var(--c-muted); font-weight: 600; }
+.kpi strong { font-size: 1.35rem; color: var(--c-primary-deep); font-variant-numeric: tabular-nums; }
+.kpi small { font-size: .72rem; color: var(--c-muted); }
+.rgrid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr)); }
+.rgrid .block { margin-top: 0; }
+.rbar { display: grid; grid-template-columns: minmax(7rem, 38%) 1fr auto; gap: .5rem; align-items: center; padding: .25rem 0; font-size: .85rem; }
+.rbar-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rbar-track { height: 12px; background: #EEF3F0; border-radius: 6px; overflow: hidden; }
+.rbar-fill { display: block; height: 100%; background: var(--c-primary); border-radius: 6px; }
+.rbar-val { font-variant-numeric: tabular-nums; color: var(--c-muted); white-space: nowrap; font-size: .8rem; }
+.hours-chart { display: grid; grid-template-columns: repeat(24, 1fr); gap: 3px; height: 140px; align-items: end; padding-top: .5rem; }
+.hc-col { display: grid; grid-template-rows: 1fr auto; height: 100%; align-items: end; }
+.hc-bar { display: block; background: var(--c-primary); border-radius: 3px 3px 0 0; min-height: 0; }
+.hc-lbl { font-size: .65rem; color: var(--c-muted); text-align: center; height: 1rem; }
+.heat { display: grid; grid-template-columns: repeat(auto-fill, minmax(5.2rem, 1fr)); gap: .4rem; }
+.heat-cell {
+  border-radius: 10px; padding: .45rem .5rem; display: grid; gap: .05rem;
+  background: color-mix(in srgb, var(--c-primary) calc(var(--i) * 85%), #F1F5F3);
+}
+.heat-name { font-weight: 700; font-size: .8rem; }
+.heat-orders { font-size: 1.2rem; font-weight: 800; }
+.heat-scans { font-size: .7rem; opacity: .85; }
+.ov-grid { display: grid; gap: .75rem; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); }
+.ov-card { border: 1px solid var(--c-line); border-radius: 12px; padding: .75rem .9rem; display: grid; gap: .2rem; font-size: .85rem; }
+.ov-card.ov-alert { border-color: #D97706; background: #FFFBEB; }
+.ov-big { font-size: 1.3rem; font-weight: 800; color: var(--c-primary-deep); }
+.ov-warn { color: #92400E; font-weight: 600; }

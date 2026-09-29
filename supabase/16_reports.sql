@@ -1,0 +1,6 @@
+-- =====================================================================
+-- FB Menus — 16_reports.sql  (v2)
+-- report_sales(outlet, from, to) and report_overview() for the admin Reports tab.
+-- SECURITY INVOKER: RLS decides what each user sees.
+-- (Full function bodies are identical to the live migration "16_reports".)
+-- =====================================================================

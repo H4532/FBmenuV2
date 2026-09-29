@@ -203,3 +203,10 @@ export async function markRequestDone(id) {
   const uid = (await sb.auth.getSession()).data.session?.user?.id || null;
   return sb.from('service_requests').update({ status: 'done', done_at: new Date().toISOString(), done_by: uid }).eq('id', id).then(must);
 }
+
+// ---------------------------------------------------------------------------
+// Reports
+// ---------------------------------------------------------------------------
+export const reportSales = (outletId, from, to) =>
+  sb.rpc('report_sales', { p_outlet: outletId, p_from: from.toISOString(), p_to: to.toISOString() }).then(must);
+export const reportOverview = () => sb.rpc('report_overview').then(must);
