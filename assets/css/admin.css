@@ -678,3 +678,11 @@ body { background: #F3F6F4; }
 .job-failed .log-text, .job-err { color: #B91C1C; }
 .steps { padding-inline-start: 1.2rem; display: grid; gap: .6rem; }
 .steps code { background: #F3F6F4; padding: .05rem .3rem; border-radius: 4px; }
+
+/* Oracle Simphony settings */
+.simph-form { display: grid; gap: .8rem; }
+.simph-actions { display: flex; gap: .5rem; flex-wrap: wrap; }
+.simph-test { margin: 0; padding: .5rem .7rem; border-radius: 8px; font-size: .85rem; }
+.simph-test.good { background: #DCFCE7; color: #14532D; }
+.simph-test.bad { background: #FEE2E2; color: #7F1D1D; }
+.simph-test small { opacity: .75; }

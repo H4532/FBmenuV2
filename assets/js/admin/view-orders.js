@@ -151,7 +151,7 @@ function card(o) {
         ${o.guest_note ? `<p class="oi-note order-note">📝 ${esc(o.guest_note)}</p>` : ''}
         ${etaBlock(o)}
         <footer class="order-foot">
-          <span class="order-mail">${mail}</span>
+          <span class="order-mail">${mail}${posChip(o)}</span>
           <span class="order-actions">
             ${['accepted', 'ready', 'served'].includes(o.status) ? `<button type="button" class="btn btn-small btn-quiet" data-reprint="${o.id}" title="Print the kitchen tickets again">🖨️ Reprint</button>` : ''}
             ${['new', 'accepted'].includes(o.status) ? `<button type="button" class="btn btn-small btn-st btn-st-cancelled" data-status="cancelled" data-id="${o.id}">${dot('cancelled')}Cancel</button>` : ''}
@@ -160,6 +160,13 @@ function card(o) {
         </footer>
       </div>
     </article>`;
+}
+
+function posChip(o) {
+  if (!o.pos_status || o.pos_status === 'skipped') return '';
+  if (o.pos_status === 'sent') return ` <span class="tag tag-info" title="Simphony check ${esc(o.pos_check_ref || '')}">POS ✓ check ${esc(o.pos_check_number ?? '')}</span>`;
+  if (o.pos_status === 'pending') return ' <span class="tag">POS sending…</span>';
+  return ` <span class="tag tag-warn" title="${esc(o.pos_error || '')}">POS failed</span> <button type="button" class="btn btn-small btn-quiet" data-pos-resend="${o.id}">Send to Simphony again</button>`;
 }
 
 function etaBlock(o) {
@@ -205,6 +212,16 @@ async function onAction(ctx, e) {
       api.notifyStatus(card.dataset.order).catch(() => {});
       refresh(ctx, false);
     } catch (err) { errorToast(err); }
+    return;
+  }
+  const pr = e.target.closest('[data-pos-resend]');
+  if (pr) {
+    pr.disabled = true;
+    try {
+      const r = await api.resendToPos(pr.dataset.posResend);
+      toast(r.sent ? `Sent to Simphony — check ${r.checkNumber ?? ''}` : `Simphony: ${r.error || r.skipped}`, r.sent ? 'ok' : 'error');
+    } catch (err) { errorToast(err); }
+    refresh(ctx, false);
     return;
   }
   const rp = e.target.closest('[data-reprint]');

@@ -2,6 +2,7 @@
 import { esc } from '../core/i18n.js';
 import { LANG_NAMES } from '../core/strings.js';
 import * as api from './api.js';
+import { renderSimphony } from './view-simphony.js';
 import {
   $, $$, toast, errorToast, langFields, readLang, field, toggle, daysPicker,
   chips, checkedValues,
@@ -105,6 +106,11 @@ export function renderSettings(ctx) {
     </form>`;
 
   const form = $('.settings-form', root);
+  if (canEdit) {
+    const simHost = document.createElement('div');
+    form.after(simHost);
+    renderSimphony(ctx, simHost);
+  }
   let savedEmails = [];
   api.getOrderSettings(outlet.id).then((row) => {
     savedEmails = row?.notify_emails || [];

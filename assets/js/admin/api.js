@@ -230,3 +230,25 @@ export const recentPrintJobs = (outletId) => sb.from('print_jobs')
   .select('id, kind, status, attempts, error, created_at, printed_at, printer_id, payload->order_no')
   .eq('outlet_id', outletId).order('created_at', { ascending: false }).limit(20).then(must);
 export const reprintOrder = (orderId) => sb.rpc('reprint_order', { p_order: orderId }).then(must);
+
+// ---------------------------------------------------------------------------
+// Oracle Simphony
+// ---------------------------------------------------------------------------
+export const getPosSettings = (outletId) => sb.from('pos_settings').select('*').eq('outlet_id', outletId).maybeSingle().then(must);
+export const savePosSettings = (row) => sb.from('pos_settings').upsert(row).then(must);
+export const setPosCredentials = (outletId, username, password) =>
+  sb.rpc('pos_set_credentials', { p_outlet: outletId, p_username: username, p_password: password || null }).then(must);
+export const posHasCredentials = (outletId) => sb.rpc('pos_has_credentials', { p_outlet: outletId }).then(must);
+async function simphony(body) {
+  const session = (await sb.auth.getSession()).data.session;
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/simphony`, {
+    method: 'POST',
+    headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${session?.access_token || ''}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error || `Request failed (${res.status})`);
+  return data;
+}
+export const testPos = (outletId) => simphony({ action: 'test', outlet_id: outletId });
+export const resendToPos = (orderId) => simphony({ action: 'resend', order_id: orderId });
