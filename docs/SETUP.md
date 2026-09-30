@@ -40,7 +40,7 @@ In **Authentication → Sign In / Providers**:
 
 In **Authentication → URL Configuration** (after step 5, once you know the site address):
 
-- **Site URL:** `https://<github-user>.github.io/fb-menus/admin/`
+- **Site URL:** `https://<github-user>.github.io/FBMENUV2/admin/`
 - **Redirect URLs:** add the same address. Password-reset links only work for addresses listed here.
 
 ## 4. Create the manager's login
@@ -94,7 +94,7 @@ Once you are signed in as an owner, use **Admin → Users** instead of SQL:
 
 ## 5. Publish on GitHub Pages
 
-1. On GitHub, create a **public** repository named `fb-menus`. GitHub Pages is free for public repos.
+1. On GitHub, create a **public** repository named `FBMENUV2`. GitHub Pages is free for public repos.
    The only key in the code is the Supabase *publishable* key, which is designed to be public.
 2. Put the contents of this folder at the root of the repository, so `index.html`, `roshan/`, `admin/` and `assets/` sit at the top level. Use one of these:
    - **Browser:** open the repo, choose **Add file → Upload files**, and drag in all files and folders.
@@ -102,14 +102,14 @@ Once you are signed in as an owner, use **Admin → Users** instead of SQL:
      ```bash
      git init && git add . && git commit -m "FB Menus"
      git branch -M main
-     git remote add origin https://github.com/<github-user>/fb-menus.git
+     git remote add origin https://github.com/<github-user>/FBMENUV2.git
      git push -u origin main
      ```
 3. **Settings → Pages → Build and deployment:** set Source to “Deploy from a branch”, Branch to `main`, and folder to `/ (root)`. Save.
 4. After about a minute the site is live:
-   - Guest menu: `https://<github-user>.github.io/fb-menus/roshan/`
-   - Admin: `https://<github-user>.github.io/fb-menus/admin/`
-   - QR tool: `https://<github-user>.github.io/fb-menus/tools/qr.html`
+   - Guest menu: `https://<github-user>.github.io/FBMENUV2/roshan/`
+   - Admin: `https://<github-user>.github.io/FBMENUV2/admin/`
+   - QR tool: `https://<github-user>.github.io/FBMENUV2/tools/qr.html`
 5. Go back to step 3 and set the Site URL and Redirect URLs.
 
 **Custom domain (optional):** for a domain such as `menu.hijeddah.com`, add it in **Settings → Pages → Custom domain** and create the DNS record GitHub shows you.

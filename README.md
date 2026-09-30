@@ -1,4 +1,6 @@
-# FB Menus
+# FB Menus — v2
+
+> Live: https://h4532.github.io/FBMENUV2/ · Version 1 (unchanged) stays at https://github.com/H4532/fb-menus
 
 Online menus for hotel restaurants and cafés: guests scan a QR code, managers update dishes, prices and availability live.
 One codebase serves every outlet.
