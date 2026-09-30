@@ -153,6 +153,7 @@ function card(o) {
         <footer class="order-foot">
           <span class="order-mail">${mail}</span>
           <span class="order-actions">
+            ${['accepted', 'ready', 'served'].includes(o.status) ? `<button type="button" class="btn btn-small btn-quiet" data-reprint="${o.id}" title="Print the kitchen tickets again">🖨️ Reprint</button>` : ''}
             ${['new', 'accepted'].includes(o.status) ? `<button type="button" class="btn btn-small btn-st btn-st-cancelled" data-status="cancelled" data-id="${o.id}">${dot('cancelled')}Cancel</button>` : ''}
             ${NEXT[o.status] ? `<button type="button" class="btn btn-small btn-st btn-st-${NEXT[o.status]}" data-status="${NEXT[o.status]}" data-id="${o.id}">${dot(NEXT[o.status])}${ACTION[o.status]}</button>` : ''}
           </span>
@@ -203,6 +204,14 @@ async function onAction(ctx, e) {
       toast('Estimated time updated');
       api.notifyStatus(card.dataset.order).catch(() => {});
       refresh(ctx, false);
+    } catch (err) { errorToast(err); }
+    return;
+  }
+  const rp = e.target.closest('[data-reprint]');
+  if (rp) {
+    try {
+      const n = await api.reprintOrder(rp.dataset.reprint);
+      toast(n ? `Reprint sent to ${n} printer${n > 1 ? 's' : ''}` : 'No printer is set up for these dishes (Printers tab).', n ? 'ok' : 'error');
     } catch (err) { errorToast(err); }
     return;
   }

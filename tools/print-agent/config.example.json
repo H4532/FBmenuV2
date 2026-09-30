@@ -1,0 +1,6 @@
+{
+  "supabase_url": "https://swjffroqtxfbsmtjpimw.supabase.co",
+  "publishable_key": "sb_publishable_9iSpnZU7vc1n2K4kMMjYNg_l55LW1XU",
+  "agent_token": "PASTE THE TOKEN FROM ADMIN → PRINTERS → ADD PRINT AGENT",
+  "poll_seconds": 3
+}

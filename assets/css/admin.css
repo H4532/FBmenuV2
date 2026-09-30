@@ -660,3 +660,21 @@ body { background: #F3F6F4; }
 .ov-card.ov-alert { border-color: #D97706; background: #FFFBEB; }
 .ov-big { font-size: 1.3rem; font-weight: 800; color: var(--c-primary-deep); }
 .ov-warn { color: #92400E; font-weight: 600; }
+
+/* ---------- Printers ------------------------------------------------------ */
+.agent-box { border-radius: 12px; padding: .75rem .9rem; margin: .5rem 0 1rem; border: 1.5px solid; }
+.agent-on { background: #F0FDF4; border-color: #86EFAC; }
+.agent-off { background: #FFF7ED; border-color: #FDBA74; }
+.agent-head { display: flex; justify-content: space-between; align-items: center; gap: .5rem; flex-wrap: wrap; }
+.printer-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr)); }
+.printer-card { background: #fff; border: 1px solid var(--c-line); border-radius: 12px; padding: .85rem 1rem; display: grid; gap: .5rem; }
+.printer-card header { display: flex; gap: .6rem; align-items: center; }
+.printer-card header div { flex: 1; display: grid; }
+.printer-ico { font-size: 1.6rem; }
+.printer-status { margin: 0; font-size: .85rem; color: var(--c-muted); }
+.printer-status.good { color: #15803D; }
+.printer-status.bad { color: #B91C1C; }
+.route-sel { min-height: 40px; border: 1px solid #C9D3CE; border-radius: 8px; padding: .3rem .5rem; background: #fff; max-width: 55%; }
+.job-failed .log-text, .job-err { color: #B91C1C; }
+.steps { padding-inline-start: 1.2rem; display: grid; gap: .6rem; }
+.steps code { background: #F3F6F4; padding: .05rem .3rem; border-radius: 4px; }

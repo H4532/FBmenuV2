@@ -210,3 +210,23 @@ export async function markRequestDone(id) {
 export const reportSales = (outletId, from, to) =>
   sb.rpc('report_sales', { p_outlet: outletId, p_from: from.toISOString(), p_to: to.toISOString() }).then(must);
 export const reportOverview = () => sb.rpc('report_overview').then(must);
+
+// ---------------------------------------------------------------------------
+// Kitchen printers
+// ---------------------------------------------------------------------------
+export const listPrinters = (outletId) => sb.from('printers').select('*').eq('outlet_id', outletId).order('name').then(must);
+export const savePrinter = (row) => (row.id
+  ? sb.from('printers').update(row).eq('id', row.id).select().single()
+  : sb.from('printers').insert(row).select().single()).then(must);
+export const deletePrinter = (id) => sb.from('printers').delete().eq('id', id).then(must);
+export const testPrinter = (id) => sb.rpc('print_test_page', { p_printer: id }).then(must);
+export const setCategoryPrinter = (categoryId, printerId) =>
+  sb.from('categories').update({ printer_id: printerId }).eq('id', categoryId).then(must);
+export const listAgents = (outletId) => sb.from('print_agents').select('id, name, is_active, last_seen_at, created_at')
+  .eq('outlet_id', outletId).order('created_at').then(must);
+export const createAgent = (outletId, name) => sb.rpc('create_print_agent', { p_outlet: outletId, p_name: name }).then(must);
+export const deleteAgent = (id) => sb.from('print_agents').delete().eq('id', id).then(must);
+export const recentPrintJobs = (outletId) => sb.from('print_jobs')
+  .select('id, kind, status, attempts, error, created_at, printed_at, printer_id, payload->order_no')
+  .eq('outlet_id', outletId).order('created_at', { ascending: false }).limit(20).then(must);
+export const reprintOrder = (orderId) => sb.rpc('reprint_order', { p_order: orderId }).then(must);
