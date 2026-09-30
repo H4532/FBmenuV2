@@ -242,6 +242,7 @@ async function editItem(ctx, itemId, presetCategoryId) {
           ${field('Calories (kcal)', `<input name="calories" inputmode="numeric" value="${v.calories ?? ''}">`, 'Required on Saudi menus')}
           ${field('Caffeine (mg)', `<input name="caffeine_mg" inputmode="numeric" value="${v.caffeine_mg ?? ''}">`, 'Drinks only')}
           ${field('Preparation time (min)', `<input name="prep_minutes" inputmode="numeric" value="${v.prep_minutes ?? ''}">`, 'Used for the guest’s estimated time')}
+          ${field('Simphony item no.', `<input name="pos_item_no" maxlength="20" value="${esc(v.pos_item_no ?? '')}" placeholder="e.g. 10245">`, 'Menu item number in Oracle Simphony (for the POS link)')}
         </div>
       </fieldset>
 
@@ -351,6 +352,7 @@ async function editItem(ctx, itemId, presetCategoryId) {
       price,
       calories: parseIntOrNull(form.elements.calories.value),
       caffeine_mg: parseIntOrNull(form.elements.caffeine_mg.value),
+      pos_item_no: form.elements.pos_item_no.value.trim() || null,
       prep_minutes: (() => { const m = parseIntOrNull(form.elements.prep_minutes.value); if (m != null && m > 240) throw new Error('Preparation time must be 240 minutes or less.'); return m; })(),
       spice_level: Number(form.elements.spice_level.value),
       item_type: form.elements.item_type.value,

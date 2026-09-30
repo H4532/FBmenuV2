@@ -2,6 +2,7 @@
 import { t, tr, esc, allergenLabel, dietaryLabel, badgeLabel } from '../core/i18n.js';
 import { price, priceDelta, kcal, kcalRange } from '../core/format.js';
 import { photoUrl } from '../platform.js';
+import * as account from './account.js';
 
 const sum = (arr) => arr.reduce((a, b) => a + b, 0);
 
@@ -99,7 +100,10 @@ export function openItemSheet(data, itemId, config, order = null) {
       ${photo}
       <div class="sheet-body">
         ${item.badges.length ? `<p class="sheet-badges">${item.badges.map((b) => `<span class="badge">${esc(badgeLabel(b))}</span>`).join('')}</p>` : ''}
-        <h2 class="sheet-title" id="sheet-title">${esc(tr(item.name))}</h2>
+        <div class="sheet-title-row">
+          <h2 class="sheet-title" id="sheet-title">${esc(tr(item.name))}</h2>
+          <button type="button" class="icon-heart${account.isFavorite(item.id) ? ' is-on' : ''}" data-fav aria-pressed="${account.isFavorite(item.id)}" aria-label="♡">${account.isFavorite(item.id) ? '♥' : '♡'}</button>
+        </div>
         <p class="sheet-price">
           ${s.fromPrice ? `<span class="from">${esc(t('from'))}</span> ` : ''}${price(s.minPrice)}
           ${s.minKcal != null && config.showCalories !== false ? `<span class="sheet-kcal">${esc(kcalRange(s.minKcal, s.maxKcal))}</span>` : ''}
@@ -142,6 +146,13 @@ export function openItemSheet(data, itemId, config, order = null) {
   dialog.onclick = (e) => { if (e.target === dialog) close(); };   // tap on backdrop
   dialog.showModal();
   dialog.querySelector('.sheet').scrollTop = 0;
+  dialog.querySelector('[data-fav]').addEventListener('click', async (e) => {
+    const b = e.currentTarget;
+    if (!account.signedIn()) { dialog.close(); account.open(); return; }
+    await account.toggleFavorite(item.id);
+    const on = account.isFavorite(item.id);
+    b.classList.toggle('is-on', on); b.textContent = on ? '♥' : '♡'; b.setAttribute('aria-pressed', on);
+  });
   if (order?.canOrder && item.available) wireOrdering(dialog, data, item, groups, order);
 }
 

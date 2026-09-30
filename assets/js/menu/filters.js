@@ -86,3 +86,9 @@ export function openSheet(dialog, { countFor, onApply }) {
   if (!dialog.open) dialog.showModal();
   dialog.onclick = (e) => { if (e.target === dialog) dialog.close(); };
 }
+
+/** Replace the filters (used by the guest's saved preferences). */
+export function setFilters(f) {
+  state = { diet: [...(f.diet || [])], hide: [...(f.hide || [])] };
+  save();
+}

@@ -78,6 +78,7 @@ export function renderSettings(ctx) {
               <option value="120">Every 2 minutes</option>
               <option value="300">Every 5 minutes</option>
             </select>`, 'Push notification with sound on every team phone, even when the app is closed.')}
+          ${field('Loyalty points per SAR', '<input name="points_per_sar" data-points inputmode="decimal" value="1">', 'Registered guests earn points when their order is marked Served. 0 = off.')}
           ${field('Stop after', `
             <select name="remind_max" data-remind-max>
               ${[3, 5, 10, 15, 20, 30].map((n) => `<option value="${n}">${n} reminders</option>`).join('')}
@@ -113,6 +114,8 @@ export function renderSettings(ctx) {
     const rm = $('[data-remind-max]', root);
     if (rs) rs.value = String(row?.remind_seconds ?? 30);
     if (rm) rm.value = String(row?.remind_max ?? 10);
+    const pp = $('[data-points]', root);
+    if (pp) pp.value = String(row?.points_per_sar ?? 1);
   }).catch(() => {});
   $('[data-add-hours]', root).addEventListener('click', () => $('[data-hours-list]', root).insertAdjacentHTML('beforeend', hoursRow()));
   root.addEventListener('click', (e) => {
@@ -154,6 +157,7 @@ export function renderSettings(ctx) {
       await api.saveOrderSettings(outlet.id, emails, {
         remind_seconds: Number(form.elements.remind_seconds.value),
         remind_max: Number(form.elements.remind_max.value),
+        points_per_sar: Math.max(0, Math.min(100, Number(form.elements.points_per_sar.value) || 0)),
       });
       savedEmails = emails;
       const patch = {

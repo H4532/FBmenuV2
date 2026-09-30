@@ -16,6 +16,7 @@ import { setupOrdering, orderContext, quickAdd, renderCartBar, whereLabel, showM
 import { savedOrders, activeOrders, watchOrders, STATUS_DOT, estimateText } from './my-orders.js';
 import * as filt from './filters.js';
 import * as svc from './service.js';
+import * as account from './account.js';
 import { guestToast } from './order-ui.js';
 
 const state = {
@@ -62,6 +63,7 @@ function startWatch() {
   });
 }
 window.addEventListener('fbm:orders', () => { if (state.data) { renderNotice(); startWatch(); } });
+window.addEventListener('fbm:order-sent', (e) => account.linkOrder(e.detail.id));
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && state.data) startWatch(); });
 
 export default async function boot(config) {
@@ -123,6 +125,19 @@ function start({ keepPosition = false } = {}) {
     svcHost.hidden = true;
   }
   if (!state.scanLogged) { state.scanLogged = true; svc.logScan(state.config.slug, state.location, lang()); }
+  if (!state.accountReady) {
+    state.accountReady = true;
+    account.init({
+      slug: state.config.slug,
+      outletId: outlet.id,
+      data: () => state.data,
+      canOrder: () => state.orderingOn && state.menuServing,
+      addToCart: (id) => quickAdd(id),
+      toast: guestToast,
+      onPrefs: (prefs) => { filt.setFilters(prefs); renderMenu(); },
+      rerender: () => { account.refreshButton(); renderMenu(); },
+    });
+  }
 
   const menus = state.data.menus;
   const wanted = state.params.get('m');
@@ -184,8 +199,9 @@ function renderHeader() {
   $('#app-header').innerHTML = `
     <div class="topbar-inner">
       <div class="brand">${logo}<span class="brand-sub">${esc(tr(outlet.tagline))}</span></div>
-      ${langs}
+      <div class="topbar-actions">${langs}<span id="acc-btn-host"></span></div>
     </div>`;
+  account.refreshButton();
 
   $('#app-header').querySelectorAll('[data-lang]').forEach((btn) => {
     btn.addEventListener('click', () => {
@@ -377,6 +393,7 @@ function renderItem(item) {
   const tags = [
     ...item.badges.map((b) => `<span class="badge">${esc(badgeLabel(b))}</span>`),
     ...item.dietary.map((d) => `<span class="diet" title="${esc(tr(DIETARY[d]))}">${esc(tr(DIETARY[d]))}</span>`),
+    account.isFavorite(item.id) ? '<span class="fav-mark" aria-label="♥">♥</span>' : '',
     item.spice > 0 ? `<span class="spice" aria-label="${esc(t('spice_levels')[item.spice])}">${'<i></i>'.repeat(item.spice)}</span>` : '',
   ].join('');
   const desc = tr(item.description);

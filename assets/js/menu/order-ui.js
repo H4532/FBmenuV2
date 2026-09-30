@@ -149,6 +149,7 @@ async function send(dlg) {
     clearCart();
     renderSent(dlg, res, sentLines, snap);
     window.dispatchEvent(new Event('fbm:orders'));
+    window.dispatchEvent(new CustomEvent('fbm:order-sent', { detail: { id: res.id } }));
   } catch (err) {
     const key = `err_${err.code}`;
     const msg = t(key, { detail: err.detail || '' });
