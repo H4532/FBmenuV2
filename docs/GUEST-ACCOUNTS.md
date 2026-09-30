@@ -18,7 +18,7 @@ Guests tap the **person icon** at the top of the menu to create an account or si
    - Authorized redirect URI: `https://swjffroqtxfbsmtjpimw.supabase.co/auth/v1/callback`
 3. Copy the **Client ID** and **Client secret**.
 4. Supabase → Authentication → **Sign In / Providers → Google** → enable, then paste both.
-5. Supabase → Authentication → **URL Configuration** → add `https://h4532.github.io/FBMENUV2/**` to Redirect URLs.
+5. Supabase → Authentication → **URL Configuration** → add `https://h4532.github.io/FBmenuV2/**` to Redirect URLs.
 
 ### Switching on Apple (needs an Apple Developer account, $99/year)
 1. developer.apple.com → Identifiers → create an **App ID** and a **Services ID**. Enable “Sign in with Apple” and set the return URL to the Supabase callback above.

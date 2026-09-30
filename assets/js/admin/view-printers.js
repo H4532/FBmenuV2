@@ -4,7 +4,7 @@ import { esc } from '../core/i18n.js';
 import * as api from './api.js';
 import { $, $$, toast, errorToast, openDialog, confirmDialog, field, toggle, nameBlock } from './ui.js';
 
-const REPO_RAW = 'https://raw.githubusercontent.com/H4532/FBMENUV2/main/tools/print-agent';
+const REPO_RAW = 'https://raw.githubusercontent.com/H4532/FBmenuV2/main/tools/print-agent';
 const ago = (iso) => {
   if (!iso) return 'never';
   const s = Math.round((Date.now() - new Date(iso).getTime()) / 1000);
