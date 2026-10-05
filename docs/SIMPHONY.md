@@ -7,19 +7,45 @@
 - Order cards show **POS ✓ check 1234**, **POS sending…** or **POS failed**. A failed order has a **Send to Simphony again** button; hover over the tag to see the reason.
 - **Training mode** (on by default) marks the checks as training checks, so they don't count in sales until go-live is approved.
 
-## Checklist for IHG IT / Oracle
-1. **Simphony Cloud with Transaction Services Gen2 (STS Gen2).** STS Gen2 is only available for Simphony Standard Cloud Service hosted by Oracle, and Oracle Hosting must enable it for the enterprise or property. On-premises Simphony 2.x/18.x uses the older SOAP Transaction Services; that would need a different connector, so tell us which you have.
-2. **An API account** (Simphony Reporting & Analytics → API accounts) for STS Gen2, providing:
-   - the **API host** (STS) and **Auth host** (identity service) URLs;
-   - the **Client ID**;
-   - the account **username / password**.
-3. From Simphony EMC:
-   - the **Org short name**;
-   - the **Location ref** of Holiday Inn Jeddah Corniche;
-   - the **Revenue center (RVC) number** for Roshan;
-   - a dedicated **employee** object number for web orders (e.g. "Web Orders");
-   - the **order type** number (and optionally a separate one for room service).
-4. The **menu item object number** of every dish. Enter them in Admin → Dishes → edit dish → "Simphony item no.". Choices such as Chicken or Beef are sent as reference text; if Simphony should receive them as condiments, send us the condiment numbers.
+## Creating the credentials (step by step)
+
+**Before you start**
+- Simphony Cloud with **STS Gen2 enabled by Oracle Hosting**.
+- A Reporting & Analytics (R&A) user with the **Manage API Accounts** privilege.
+
+### A. Create the API account (R&A)
+1. Sign in to **Simphony Reporting and Analytics**.
+2. Side menu → **Administration → System → API Accounts → Add API Account**.
+3. Fill in:
+   - **Type:** Simphony Transaction Services
+   - **Account name:** e.g. `fbmenus-roshan` (cannot sign in to R&A itself)
+   - **E-mail:** an IT mailbox you control (receives the password link and lock-out e-mails)
+   - **Authorization scope:** *Selected* → Choose Locations → **only Holiday Inn Jeddah Corniche**
+   - **Client scope:** **CLOUD**
+   - **Redirect URL:** leave empty
+4. **Add**, then **Copy** the **Client ID**.
+5. Open the welcome e-mail and **set the password**.
+
+### B. Collect the other values
+| Field in Settings | Where to find it |
+|---|---|
+| Auth host | Usually your R&A address. To check, open `https://<host>/oidc-provider/v1/.well-known/openid-configuration`: it must show JSON. |
+| API host | STS Gen2 address for your enterprise, from Oracle / IHG IT |
+| Org short name | The organization typed on the R&A sign-in page |
+| Location ref | EMC → the property's location reference |
+| RVC ref | EMC → Roshan revenue center number |
+| Employee no. | EMC → create a **"Web Orders"** employee in Roshan's RVC (role: begin check, add items, service total) → its object number |
+| Order type(s) | EMC → Roshan RVC → Order Types (Dine-in; optionally Room Service) |
+| Simphony item no. | EMC → Menu Item Maintenance → object number of each dish → Admin → Dishes |
+
+### C. Connect
+1. Admin → Settings → **Oracle Simphony**: enter everything, including the API username and password, then **Save**.
+2. Press **Test connection**. It should show *OK — connected to …*.
+
+### D. Keeping it running
+- The API **password expires every 60 days**. The system renews its tokens **daily**, so orders keep flowing. After you reset the password (R&A sign-in page → *Can't sign in?*), enter the new one in Settings.
+- Five wrong passwords lock the account for 30 minutes.
+- Failures of the daily renewal appear under the Test result in Settings.
 
 ## Going live
 1. Admin → Settings → **Oracle Simphony**: fill in all fields, save the API account, then press **Test connection**. It should show "OK — connected to …".

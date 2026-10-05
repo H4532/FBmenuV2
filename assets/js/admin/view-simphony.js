@@ -18,12 +18,12 @@ export async function renderSimphony(ctx, host) {
         ${toggle('enabled', 'Send accepted orders to Simphony', Boolean(cfg.enabled))}
         ${toggle('training_mode', 'Training mode (checks marked as training — use until go-live)', cfg.training_mode !== false)}
         <div class="row-fields">
-          ${field('API host', `<input name="api_host" value="${esc(cfg.api_host || '')}" placeholder="https://xxxx-sts.oracleindustry.com">`)}
-          ${field('Auth host', `<input name="auth_host" value="${esc(cfg.auth_host || '')}" placeholder="https://xxxx-idm.oracleindustry.com">`)}
-          ${field('Client ID', `<input name="client_id" value="${esc(cfg.client_id || '')}">`)}
+          ${field('API host', `<input name="api_host" value="${esc(cfg.api_host || '')}" placeholder="https://…">`, 'STS Gen2 address — given by Oracle when STS Gen2 is enabled')}
+          ${field('Auth host', `<input name="auth_host" value="${esc(cfg.auth_host || '')}" placeholder="https://…">`, 'Usually your Reporting & Analytics address (Test connection checks it)')}
+          ${field('Client ID', `<input name="client_id" value="${esc(cfg.client_id || '')}">`, 'Shown in R&A → API Accounts after creating the account')}
         </div>
         <div class="row-fields">
-          ${field('Org short name', `<input name="org_short_name" value="${esc(cfg.org_short_name || '')}">`)}
+          ${field('Org short name', `<input name="org_short_name" value="${esc(cfg.org_short_name || '')}">`, 'The organization you type when signing in to R&A')}
           ${field('Location ref', `<input name="loc_ref" value="${esc(cfg.loc_ref || '')}">`)}
           ${field('Revenue center (RVC) ref', `<input name="rvc_ref" inputmode="numeric" value="${num(cfg.rvc_ref)}">`)}
         </div>
@@ -34,7 +34,7 @@ export async function renderSimphony(ctx, host) {
         </div>
         <div class="row-fields">
           ${field('API account username', '<input name="api_user" autocomplete="off">', hasCred ? '✓ An account is saved. Leave empty to keep it.' : 'From Simphony Reporting & Analytics → API accounts')}
-          ${field('API account password', '<input name="api_pass" type="password" autocomplete="new-password">', 'Stored encrypted-at-rest in a private table; never shown again')}
+          ${field('API account password', '<input name="api_pass" type="password" autocomplete="new-password">', 'Kept in a private table; never shown again. Oracle expires it every 60 days — tokens are renewed daily so orders keep flowing; update it here when you change it.')}
         </div>
         <div class="simph-actions">
           <button type="submit" class="btn btn-primary btn-small">Save Simphony settings</button>

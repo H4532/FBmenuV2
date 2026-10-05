@@ -2,6 +2,7 @@
 //  • {action:'send', order_id}              from the database when an order is accepted
 //  • {action:'resend', order_id}  (staff)   retry a failed order ("Orders" right)
 //  • {action:'test', outlet_id}   (staff)   sign in and list checks ("Settings" right)
+//  • {action:'keepalive'}                   daily (pg_cron): renew tokens before they expire
 // Accepted orders become OPEN checks in the configured revenue center; the cashier
 // closes them in Simphony (room charge to Opera, cash, card) and Simphony prints the
 // fiscal / ZATCA invoice as usual. idempotencyId = order id, so retries never duplicate.
@@ -39,17 +40,23 @@ async function login(cfg: any, cred: any) {
     body: new URLSearchParams({ username: cred.username, password: cred.password, orgname: cfg.org_short_name }),
   });
   const sj = await s.json().catch(() => ({} as any));
+  if (sj.nextOp === 'expired') {
+    throw new Error('The Simphony API account password has expired (Oracle requires a change every 60 days). '
+      + 'Reset it on the Reporting and Analytics sign-in page ("Can\'t sign in?"), then save the new password in Settings → Oracle Simphony.');
+  }
+  if (s.status === 401) throw new Error('Simphony rejected the API account username/password (or the account is locked for 30 min after repeated failures).');
   const code = sj.redirectUrl ? new URL(sj.redirectUrl.replace('apiaccount://', 'https://x/')).searchParams.get('code') : null;
   if (!code) throw new Error(`Simphony sign-in failed (${s.status}): ${JSON.stringify(sj).slice(0, 200)}`);
   // 3. exchange the code for tokens
-  return await token(cfg, new URLSearchParams({ grant_type: 'authorization_code', code, code_verifier: verifier, client_id: cfg.client_id, redirect_uri: REDIRECT }));
+  return await token(cfg, new URLSearchParams({ scope: 'openid', grant_type: 'authorization_code', code, code_verifier: verifier, client_id: cfg.client_id, redirect_uri: REDIRECT }), cookies);
 }
 
-async function token(cfg: any, body: URLSearchParams) {
-  const r = await fetch(`${cfg.auth_host}/oidc-provider/v1/oauth2/token`, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body });
+async function token(cfg: any, body: URLSearchParams, cookies = '') {
+  const r = await fetch(`${cfg.auth_host}/oidc-provider/v1/oauth2/token`, {
+    method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded', ...(cookies ? { Cookie: cookies } : {}) }, body });
   const j = await r.json().catch(() => ({} as any));
   if (!r.ok || !j.id_token) throw new Error(`Simphony token request failed (${r.status}): ${JSON.stringify(j).slice(0, 200)}`);
-  const exp = new Date(Date.now() + (Number(j.expires_in) || 3600) * 1000 - 60000).toISOString();
+  const exp = new Date(Date.now() + (Number(j.expires_in) || 1209600) * 1000).toISOString();   // id_token: 14 days
   await db.rpc('pos_save_tokens', { p_outlet: cfg.outlet_id, p_id_token: j.id_token, p_refresh_token: j.refresh_token || null, p_expires: exp });
   return j.id_token as string;
 }
@@ -57,9 +64,14 @@ async function token(cfg: any, body: URLSearchParams) {
 async function idToken(cfg: any) {
   const { data: cred } = await db.rpc('pos_get_credentials', { p_outlet: cfg.outlet_id });
   if (!cred?.username || !cred?.password) throw new Error('No Simphony API account saved (Settings → Oracle Simphony).');
-  if (cred.id_token && cred.token_expires && new Date(cred.token_expires) > new Date()) return cred.id_token;
+  // Oracle recommends renewing 3–7 days before the 14-day id_token expires; we renew with 5 days left.
+  const renewAt = Date.now() + 5 * 24 * 3600 * 1000;
+  if (cred.id_token && cred.token_expires && new Date(cred.token_expires).getTime() > renewAt) return cred.id_token;
   if (cred.refresh_token) {
-    try { return await token(cfg, new URLSearchParams({ grant_type: 'refresh_token', refresh_token: cred.refresh_token, client_id: cfg.client_id })); }
+    try {
+      return await token(cfg, new URLSearchParams({ scope: 'openid', grant_type: 'refresh_token', refresh_token: cred.refresh_token,
+        client_id: cfg.client_id, redirect_uri: REDIRECT }));
+    }
     catch { /* fall back to a full sign-in */ }
   }
   return await login(cfg, cred);
@@ -152,6 +164,18 @@ Deno.serve(async (req) => {
   let b: any; try { b = await req.json(); } catch { return json({ error: 'BAD_REQUEST' }, 400); }
   try {
     if (b.action === 'send') return json(await send(String(b.order_id)));
+    if (b.action === 'keepalive') {
+      const { data: outlets } = await db.from('pos_settings').select('*').eq('enabled', true);
+      const out: Record<string, string> = {};
+      for (const cfg of outlets || []) {
+        try { await idToken(cfg); out[cfg.outlet_id] = 'ok'; }
+        catch (e) {
+          out[cfg.outlet_id] = String((e as Error).message || e);
+          await db.from('pos_settings').update({ last_test_at: new Date().toISOString(), last_test_result: `FAILED (daily renewal) — ${out[cfg.outlet_id].slice(0, 250)}` }).eq('outlet_id', cfg.outlet_id);
+        }
+      }
+      return json(out);
+    }
     if (b.action === 'resend') {
       const { data: o } = await db.from('orders').select('outlet_id').eq('id', String(b.order_id)).single();
       if (!o || !(await staff(req, o.outlet_id, 'orders'))) return json({ error: 'FORBIDDEN' }, 403);
@@ -165,6 +189,8 @@ Deno.serve(async (req) => {
       let result: string;
       try {
         for (const k of ['api_host', 'auth_host', 'client_id', 'org_short_name', 'loc_ref', 'rvc_ref']) if (!cfg?.[k]) throw new Error(`Fill in ${k.replace(/_/g, ' ')} first.`);
+        const disc = await fetch(`${cfg.auth_host}/oidc-provider/v1/.well-known/openid-configuration`).catch(() => null);
+        if (!disc || !disc.ok) throw new Error(`Auth host not recognised: ${cfg.auth_host}/oidc-provider/v1/.well-known/openid-configuration did not answer. Check the Auth host with IHG IT/Oracle.`);
         const r = await sts(cfg, 'GET', '/checks');
         result = `OK — connected to ${cfg.org_short_name}/${cfg.loc_ref} RVC ${cfg.rvc_ref}; ${Array.isArray(r?.checks) ? r.checks.length : 0} open check(s) visible.`;
       } catch (e) { result = `FAILED — ${String((e as Error).message || e).slice(0, 280)}`; }
